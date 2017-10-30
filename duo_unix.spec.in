@@ -1,4 +1,3 @@
-%define libname libduo
 %define develname duo_unix-devel
 
 Name: duo_unix
@@ -14,8 +13,9 @@ URL: http://www.duosecurity.com/
 Source0: https://dl.duosecurity.com/%{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Requires: pam, openssl %{libname} = %{version}, zlib, openssh-server
+Requires: pam, openssl, zlib, openssh-server
 BuildRequires: pam-devel, openssl-devel, pkgconfig, zlib-devel
+Obsoletes: libduo <= %{version}
 
 %description
 Duo provides simple two-factor authentication as a service via:
@@ -30,17 +30,9 @@ This package allows an admin (or ordinary user) to quickly add Duo
 authentication to any Unix login without setting up secondary user
 accounts, directory synchronization, servers, or hardware.
 
-%package -n %{libname}
-Summary: Shared libraries for duo authentication
-Group: System/Libraries
-
-%description -n %{libname}
-Shared libraries for duo_unix
-
 %package -n pam_duo
 Summary: A PAM module for duo authentication
 Group: System/Libraries
-Requires: %{libname} = %{version}
 
 %description -n pam_duo
 A PAM module for duo authentication
@@ -48,7 +40,7 @@ A PAM module for duo authentication
 %package -n %{develname}
 Summary: Development files and documentation for duo_unix
 Group: System/Libraries
-Requires: %{libname} = %{version}
+Requires: %{name} = %{version}
 
 %description -n %{develname}
 Development files and documentation for duo_unix
@@ -57,7 +49,7 @@ Development files and documentation for duo_unix
 Summary: An SELinux module for duo authentication
 Group: System/Libraries
 BuildRequires: bzip2, selinux-policy-devel
-Requires: %{libname} = %{version}
+Requires: %{name} = %{version}
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' /usr/share/selinux/devel/policyhelp 2>/dev/null)}
 %if "%{_selinux_policy_version}" != ""
 Requires:      selinux-policy >= %{_selinux_policy_version}
@@ -104,10 +96,6 @@ install -p -m 644 pam_duo/authlogin_duo.pp \
         %{buildroot}%{_datadir}/selinux/packages/authlogin_duo.pp
 bzip2 -9 %{buildroot}%{_datadir}/selinux/packages/authlogin_duo.pp
 
-%post -n libduo -p /sbin/ldconfig
-
-%postun -n libduo -p /sbin/ldconfig
-
 %post selinux
 /usr/sbin/semodule -i \
     %{_datadir}/selinux/packages/authlogin_duo.pp.bz2 2> /dev/null || :
@@ -138,16 +126,11 @@ fi
 %config(noreplace) %attr(640, root, root) %{_sysconfdir}/duo/pam_duo.conf
 %{_mandir}/man8/pam_duo.8.gz
 
-%files -n %{libname}
-%defattr(-,root,root)
-%{_libdir}/libduo.so*
-
 %files -n %{develname}
 %defattr(-,root,root)
-%{_libdir}/libduo.a
-%{_libdir}/libduo.la
 %{_includedir}/duo/duo.h
 %{_includedir}/duo/util.h
+%{_includedir}/duo/shell.h
 %{_libdir}/pkgconfig/libduo.pc
 %{_mandir}/man3/duo.3.gz
 
